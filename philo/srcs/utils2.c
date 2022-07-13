@@ -6,30 +6,32 @@
 /*   By: brhajji- <brhajji-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/01 17:05:59 by brhajji-          #+#    #+#             */
-/*   Updated: 2022/06/21 18:15:55 by brhajji-         ###   ########.fr       */
+/*   Updated: 2022/07/12 19:01:21 by brhajji-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/philo.h"
 
-int	ft_free(t_utils *utils)
+int	ft_free(t_philo *philos, int size)
 {
-	int		i;
 	t_philo	*tmp;
+	int		i;
 
-	if (utils)
+	tmp = NULL;
+	i = -1;
+	if (philos && philos->utils &&  philos->utils->fchette)
+		free(philos->utils->fchette);
+	if (philos && philos->utils)
+		free(philos->utils);
+	while (++i < size)
 	{
-		i = -1;
-		while (++i < utils->nb_philo)
+		tmp = philos->next;
+		if (philos)
 		{
-			tmp = utils->philos->next;
-			if (utils->philos)
-				free(utils->philos);
-			utils->philos = tmp;
+			free(philos);
+			philos = NULL;
 		}
-		if (utils->fchette)
-			free(utils->fchette);
-		free(utils);
+		philos = tmp;
 	}
 	return (0);
 }
@@ -56,12 +58,12 @@ int	check_args(char **av, int ac)
 	return (1);
 }
 
-int	one_philo(t_utils *utils, int ac, char **av)
+int	one_philo(t_philo *philos, int ac, char **av)
 {
 	if (ac == 6 && ft_atoi(av[5]) <= 0)
-		return (ft_free(utils));
+		return (ft_free(philos, philos->nb_philo));
 	printf("0 1 has taken a fork\n");
-	usleep(utils->ttdie * 1000);
-	printf("%i 1 died\n", utils->ttdie);
-	return (ft_free(utils));
+	usleep(philos->ttdie * 1000);
+	printf("%i 1 died\n", philos->ttdie);
+	return (ft_free(philos, philos->nb_philo));
 }

@@ -6,111 +6,123 @@
 /*   By: brhajji- <brhajji-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/11 17:27:33 by brhajji-          #+#    #+#             */
-/*   Updated: 2022/07/12 05:32:23 by brhajji-         ###   ########.fr       */
+/*   Updated: 2022/07/13 14:27:39 by brhajji-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/philo.h"
 
-void	init_philo(t_utils *utils, int i, int av5)
+t_philo	*init_philo(t_utils *utils, int av5, t_philo *philos, char **av)
 {
 	t_philo	*tmp;
+	int		i;
 
-	tmp = malloc(sizeof(t_philo));
-	if (!tmp)
-		return ;
-	tmp->num = i;
-	tmp->rot = av5;
-	tmp->next = NULL;
-	if (utils->philos != NULL)
-		ft_lstlast((utils->philos))->next = tmp;
-	else
-		utils->philos = tmp;
-	if (i == utils->nb_philo)
-		ft_lstlast((utils)->philos)->next = (utils)->philos;
-	pthread_mutex_init(&((utils)->fchette[i - 1]), NULL);
+	i = 0;
+	tmp = NULL;
+	while (++i <= ft_atoi(av[1]))
+	{
+		tmp = malloc(sizeof(t_philo));
+		if (!tmp)
+			return (NULL);
+		tmp->nb_philo = ft_atoi(av[1]);
+		tmp->ttdie = ft_atoi(av[2]);
+		tmp->tteat = ft_atoi(av[3]);
+		tmp->ttsleep = ft_atoi(av[4]);
+		tmp->num = i;
+		tmp->rot = av5;
+		tmp->next = NULL;
+		tmp->utils = utils;
+		if (philos != NULL)
+			ft_lstlast((philos))->next = tmp;
+		else
+			philos = tmp;
+		if (i != 1 && i == tmp->nb_philo)
+			ft_lstlast(philos)->next = philos;
+		pthread_mutex_init(&((utils)->fchette[i - 1]), NULL);
+	}
+	return (philos);
 }
 
-void	init(t_utils **utils, char **av, int ac)
+t_philo	*init(t_utils **utils, char **av, int ac)
 {
-	int	i;
-	int	rot;
+	int		rot;
+	t_philo	*philos;
 
 	rot = -1;
+	philos = NULL;
 	if (ac == 6)
 		rot = ft_atoi(av[5]);
-	i = 0;
 	(*utils) = calloc(sizeof(t_utils), 1);
 	if (!utils)
-		return ;
-	(*utils)->nb_philo = ft_atoi(av[1]);
+		return (NULL);
 	(*utils)->rot_done = 0;
-	(*utils)->ttdie = ft_atoi(av[2]);
-	(*utils)->tteat = ft_atoi(av[3]);
-	(*utils)->ttsleep = ft_atoi(av[4]);
 	pthread_mutex_init(&((*utils)->death), NULL);
 	pthread_mutex_init(&((*utils)->mute_rot), NULL);
 	pthread_mutex_init(&((*utils)->mute_print), NULL);
-	(*utils)->philos = NULL;
 	(*utils)->gameover = 0;
-	(*utils)->fchette = malloc(sizeof(pthread_mutex_t) * ((*utils)->nb_philo));
+	(*utils)->fchette = malloc(sizeof(pthread_mutex_t) * (ft_atoi(av[1])));
 	if (!(*utils)->fchette)
-		return ;
-	while (++i <= (*utils)->nb_philo)
-		init_philo(*utils, i, rot);
+		return (NULL);
+	philos = init_philo(*utils, rot, philos, av);
+	return (philos);
 }
 
-int	start_th(t_utils *utils)
+int	start_th(t_philo *philos)
 {
 	int	ret;
 
-	pthread_mutex_init(&((utils)->philos->block), NULL);
-	pthread_mutex_lock(&(utils->philos->block));
-	gettimeofday(&(utils->philos->time), NULL);
-	pthread_mutex_unlock(&(utils->philos->block));
-	ret = pthread_create(&(utils->philos->philo), NULL, table, (void *)utils);
-	usleep(10000);
-	utils->philos = utils->philos->next;
+	pthread_mutex_init(&(philos->block), NULL);
+	gettimeofday(&(philos->time), NULL);
+	ret = pthread_create(&(philos->philo), NULL, table, (void *)philos);
+	usleep(100);
 	return (ret);
 }
 
-int	join_death(t_utils *utils)
+int	join_death(t_philo *philos)
 {
 	int	i;
 
 	i = -1;
-	usleep((utils->ttdie - 1) * 1000);
-	while (get_gameover(utils) == 0 && get_rot(utils) == 0)
+	usleep((philos->ttdie - 1) * 1000);
+	while (get_gameover(philos->utils) == 0 && get_rot(philos->utils, philos->nb_philo) == 0)
 	{
-		check_death(utils);
+		check_death(philos);
 		usleep(8000);
 	}
-	while (++i < utils->nb_philo)
+	while (++i < philos->nb_philo)
 	{
-		pthread_join((utils->philos->philo), NULL);
-		utils->philos = utils->philos->next;
+		pthread_join((philos->philo), NULL);
+		philos = philos->next;
 	}
-	return (ft_free(utils));
+	return (ft_free(philos, philos->nb_philo));
 }
 
 int	main(int ac, char **av)
 {
 	t_utils			*utils;
+	t_philo			*philos;
+	t_philo			*tmp_philos;
 	int				i;
 
 	if ((ac == 5 || ac == 6) && check_args(av, ac))
 	{
 		i = -1;
-		init(&utils, av, ac);
-		if (utils->nb_philo == 1)
-			return (one_philo(utils, ac, av));
+		philos = NULL;
+		philos = init(&utils, av, ac);
+		tmp_philos = philos;
+		if (philos->nb_philo == 1)
+			return (one_philo(philos, ac, av));
 		pthread_mutex_lock(&(utils->mute_print));
-		while (++i < utils->nb_philo)
-			if (start_th(utils) == -1)
-				return (ft_free(utils));
-		gettimeofday(&((utils)->start), NULL);
+		while (++i < philos->nb_philo)
+		{
+			if (start_th(philos) == -1)
+				return (ft_free(philos, philos->nb_philo));
+			else
+				philos = philos->next;
+		}
+		gettimeofday(&((philos)->utils->start), NULL);
 		pthread_mutex_unlock(&(utils->mute_print));
-		return (join_death(utils));
+		return (join_death(tmp_philos));
 	}
 	else
 		printf("Invalid args\n");

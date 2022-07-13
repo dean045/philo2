@@ -6,27 +6,29 @@
 /*   By: brhajji- <brhajji-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 20:10:17 by brhajji-          #+#    #+#             */
-/*   Updated: 2022/07/12 05:16:01 by brhajji-         ###   ########.fr       */
+/*   Updated: 2022/07/13 14:08:36 by brhajji-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/philo.h"
 
-void	print(t_utils *utils, int philo, int etat, long int time)
+void	print(t_utils *utils, int philo, int etat, struct timeval time)
 {
+	long int	now;
 	pthread_mutex_lock(&(utils->mute_print));
+	now = maj(time);
 	if (etat == 0)
-		printf("%li %i died\n", time, philo);
+		printf("%li %i died\n", now, philo);
 	else if (get_gameover(utils) == 0)
 	{
 		if (etat == 1)
-			printf("%ld %i is thinking\n", time, philo);
+			printf("%ld %i is thinking\n", now, philo);
 		else if (etat == 2)
-			printf("%ld %i has taken a fork\n", time, philo);
+			printf("%ld %i has taken a fork\n", now, philo);
 		else if (etat == 3)
-			printf("%ld %i is eating\n", time, philo);
+			printf("%ld %i is eating\n", now, philo);
 		else if (etat == 4)
-			printf("%ld %i is sleeping\n", time, philo);
+			printf("%ld %i is sleeping\n", now, philo);
 	}
 	pthread_mutex_unlock(&(utils->mute_print));
 }
@@ -56,13 +58,13 @@ int	get_gameover(t_utils *utils)
 	return (x);
 }
 
-int	get_rot(t_utils *utils)
+int	get_rot(t_utils *utils, int nb_philo)
 {
 	int	x;
 
 	x = 0;
 	pthread_mutex_lock(&(utils->mute_rot));
-	if (utils->rot_done == utils->nb_philo)
+	if (utils->rot_done == nb_philo)
 		x = 1;
 	pthread_mutex_unlock(&(utils->mute_rot));
 	return (x);
