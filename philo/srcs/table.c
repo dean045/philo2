@@ -6,7 +6,7 @@
 /*   By: brhajji- <brhajji-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/22 00:16:25 by brhajji-          #+#    #+#             */
-/*   Updated: 2022/07/13 14:28:38 by brhajji-         ###   ########.fr       */
+/*   Updated: 2022/07/13 15:32:54 by brhajji-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void	eat(t_utils *utils, t_philo *philo)
 	if (philo->rot != 0)
 	{
 		print(utils, philo->num, 4, philo->utils->start);
-		s_sleep(utils, philo->ttsleep);	
+		s_sleep(utils, philo->ttsleep);
 	}
 }
 
@@ -50,7 +50,7 @@ void	eat_last(t_utils *utils, t_philo *philo)
 	if (philo->rot != 0)
 	{
 		print(utils, philo->num, 4, philo->utils->start);
-		s_sleep(utils, philo->ttsleep);	
+		s_sleep(utils, philo->ttsleep);
 	}
 }
 
@@ -61,9 +61,6 @@ void	*table(void *param)
 	philo = (t_philo *)param;
 	pthread_mutex_lock(&(philo->utils->mute_print));
 	pthread_mutex_unlock(&(philo->utils->mute_print));
-	pthread_mutex_lock(&(philo->block));
-	gettimeofday(&(philo->time), NULL);
-	pthread_mutex_unlock(&(philo->block));
 	if (philo->num % 2 == 0)
 		usleep((philo->tteat / 2) * 1000);
 	while (philo->rot != 0 && get_gameover(philo->utils) == 0)
@@ -96,7 +93,7 @@ int	check_death(t_philo *philos)
 	{
 		gettimeofday(&(current), NULL);
 		pthread_mutex_lock(&(philos->block));
-		if (convert(philos->time) + philos->ttdie <= convert(current))
+		if (convert(philos->time) + philos->ttdie < convert(current))
 		{
 			pthread_mutex_lock(&(philos->utils->death));
 			ret = (philos->num);
@@ -122,9 +119,9 @@ void	s_sleep(t_utils *utils, int time)
 	gettimeofday(&(start), NULL);
 	while (++i && convert(start) + time > convert(current))
 	{
-		usleep(1000);
+		usleep(200);
 		gettimeofday(&(current), NULL);
-		if (i % 10 == 0 && get_gameover(utils) == 1)
+		if (i % 20 == 0 && get_gameover(utils) == 1)
 			break ;
 	}
 }

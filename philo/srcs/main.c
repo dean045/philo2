@@ -6,7 +6,7 @@
 /*   By: brhajji- <brhajji-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/11 17:27:33 by brhajji-          #+#    #+#             */
-/*   Updated: 2022/07/13 14:27:39 by brhajji-         ###   ########.fr       */
+/*   Updated: 2022/07/13 15:30:06 by brhajji-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@ t_philo	*init_philo(t_utils *utils, int av5, t_philo *philos, char **av)
 	int		i;
 
 	i = 0;
-	tmp = NULL;
 	while (++i <= ft_atoi(av[1]))
 	{
 		tmp = malloc(sizeof(t_philo));
@@ -38,7 +37,6 @@ t_philo	*init_philo(t_utils *utils, int av5, t_philo *philos, char **av)
 			philos = tmp;
 		if (i != 1 && i == tmp->nb_philo)
 			ft_lstlast(philos)->next = philos;
-		pthread_mutex_init(&((utils)->fchette[i - 1]), NULL);
 	}
 	return (philos);
 }
@@ -72,9 +70,9 @@ int	start_th(t_philo *philos)
 	int	ret;
 
 	pthread_mutex_init(&(philos->block), NULL);
+	pthread_mutex_init(&(philos->utils->fchette[philos->num - 1]), NULL);
 	gettimeofday(&(philos->time), NULL);
 	ret = pthread_create(&(philos->philo), NULL, table, (void *)philos);
-	usleep(100);
 	return (ret);
 }
 
@@ -84,7 +82,8 @@ int	join_death(t_philo *philos)
 
 	i = -1;
 	usleep((philos->ttdie - 1) * 1000);
-	while (get_gameover(philos->utils) == 0 && get_rot(philos->utils, philos->nb_philo) == 0)
+	while (get_gameover(philos->utils) == 0
+		&& get_rot(philos->utils, philos->nb_philo) == 0)
 	{
 		check_death(philos);
 		usleep(8000);
@@ -104,26 +103,24 @@ int	main(int ac, char **av)
 	t_philo			*tmp_philos;
 	int				i;
 
-	if ((ac == 5 || ac == 6) && check_args(av, ac))
+	while ((ac == 5 || ac == 6) && check_args(av, ac))
 	{
 		i = -1;
-		philos = NULL;
 		philos = init(&utils, av, ac);
+		if (!philos)
+			break ;
 		tmp_philos = philos;
 		if (philos->nb_philo == 1)
 			return (one_philo(philos, ac, av));
 		pthread_mutex_lock(&(utils->mute_print));
 		while (++i < philos->nb_philo)
-		{
 			if (start_th(philos) == -1)
 				return (ft_free(philos, philos->nb_philo));
-			else
+		else
 				philos = philos->next;
-		}
 		gettimeofday(&((philos)->utils->start), NULL);
 		pthread_mutex_unlock(&(utils->mute_print));
 		return (join_death(tmp_philos));
 	}
-	else
-		printf("Invalid args\n");
+	printf("Invalid args\n");
 }

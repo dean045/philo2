@@ -6,7 +6,7 @@
 /*   By: brhajji- <brhajji-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 20:10:17 by brhajji-          #+#    #+#             */
-/*   Updated: 2022/07/13 14:08:36 by brhajji-         ###   ########.fr       */
+/*   Updated: 2022/07/13 14:34:26 by brhajji-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 void	print(t_utils *utils, int philo, int etat, struct timeval time)
 {
 	long int	now;
+
 	pthread_mutex_lock(&(utils->mute_print));
 	now = maj(time);
 	if (etat == 0)
